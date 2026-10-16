@@ -1,10 +1,11 @@
 //
 //  Tweak.x
-//  VideoCompress 缁堟瀬瑙ｉ攣鐗?//
+//  VideoCompress Unlock
+//
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
 %ctor {
-    NSLog(@"[VideoCompress Tweak] 鍔犺浇鎴愬姛锛?);
+    NSLog(@"[VideoCompress Tweak] Loaded!");
 }

@@ -7,8 +7,9 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Install Theos
+      - name: Install Theos and dependencies
         run: |
+          brew install ldid
           sudo git clone --recursive https://github.com/theos/theos.git /opt/theos
           sudo xcode-select -s /Applications/Xcode_15.4.app
       - name: Build

@@ -1,60 +1,16 @@
 #import <Foundation/Foundation.h>
-#import <mach-o/dyld.h>
-#import <mach/mach.h>
-#import <string.h>
+#import <UIKit/UIKit.h>
 
-static uint32_t patch_code[2] = {0xD2800000, 0xD65F03C0};
+// 鍏圚ook涓€涓‘瀹氬瓨鍦ㄧ殑绯荤粺绫伙紝娴嬭瘯涓€涓?hook鑳戒笉鑳界敤
+%hook UIApplication
 
-static void patchFunction(void *funcAddr) {
-    kern_return_t kr = vm_protect(mach_task_self(), (vm_address_t)funcAddr, sizeof(patch_code), FALSE, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
-    if (kr != KERN_SUCCESS) {
-        NSLog(@"[VideoCompress] vm_protect failed: %d", kr);
-        return;
-    }
-    
-    memcpy(funcAddr, patch_code, sizeof(patch_code));
-    
-    kr = vm_protect(mach_task_self(), (vm_address_t)funcAddr, sizeof(patch_code), FALSE, VM_PROT_READ | VM_PROT_EXECUTE);
-    if (kr != KERN_SUCCESS) {
-        NSLog(@"[VideoCompress] vm_protect restore failed: %d", kr);
-        return;
-    }
-    
-    NSLog(@"[VideoCompress] Patched function at %p", funcAddr);
+- (void)applicationDidFinishLaunching:(UIApplication *)application {
+    %orig;
+    NSLog(@"[VideoCompress] App did finish launching!");
 }
 
-static void *findMainImageBase() {
-    uint32_t count = _dyld_image_count();
-    for (uint32_t i = 0; i < count; i++) {
-        const char *name = _dyld_get_image_name(i);
-        if (strstr(name, "VideoCompress") != NULL) {
-            NSLog(@"[VideoCompress] Found main image: %s", name);
-            return (void *)_dyld_get_image_header(i);
-        }
-    }
-    NSLog(@"[VideoCompress] Main image not found, using image 0");
-    return (void *)_dyld_get_image_header(0);
-}
+%end
 
-static void doPatches() {
-    NSLog(@"[VideoCompress] Starting patches...");
-    
-    void *base = findMainImageBase();
-    NSLog(@"[VideoCompress] Main base: %p", base);
-    
-    // 鍙狿atch绗竴涓細VIP瑙ｉ攣 @ 0xa8350
-    patchFunction((void *)((uintptr_t)base + 0xa8350));
-    
-    NSLog(@"[VideoCompress] Patches done!");
-}
-
-__attribute__((constructor))
-static void init(void) {
+%ctor {
     NSLog(@"[VideoCompress] Tweak loaded!");
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            doPatches();
-        });
-    });
 }

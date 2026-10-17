@@ -1,29 +1,28 @@
-//
-//  Tweak.x
-//  VideoCompress Unlock + Ad Block
-//
-
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+#import <substrate.h>
+#import <mach-o/dyld.h>
 
-// VIP瑙ｉ攣: shouldLockForProductIdentifier: -> return NO
-%hook VCSettingsConfig
+static void *g_orig0 = NULL;
+static void *g_orig1 = NULL;
+static void *g_orig2 = NULL;
 
-+ (BOOL)shouldLockForProductIdentifier:(NSString *)productIdentifier {
-    return NO;
+static id hook_func0(id self, SEL _cmd) {
+    return (id)0;
 }
 
-%end
-
-// 鎻掑睆骞垮憡: showInterstitialAdAfterTimeLengthInViewController: -> return nil
-%hook VCAdvertiseController
-
-- (id)showInterstitialAdAfterTimeLengthInViewController:(UIViewController *)viewController {
-    return nil;
+static id hook_func1(id self, SEL _cmd) {
+    return (id)0;
 }
 
-%end
+static id hook_func2(id self, SEL _cmd) {
+    return (id)0;
+}
 
-%ctor {
-    NSLog(@"[VideoCompress Tweak] Loaded successfully!");
+__attribute__((constructor))
+static void init(void) {
+    void *base = (void *)_dyld_get_image_header(0);
+    
+    MSHookFunction((void *)((uintptr_t)base + 0xa8350), hook_func0, &g_orig0);
+    MSHookFunction((void *)((uintptr_t)base + 0xa6ad0), hook_func1, &g_orig1);
+    MSHookFunction((void *)((uintptr_t)base + 0xa8240), hook_func2, &g_orig2);
 }

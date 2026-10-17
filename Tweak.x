@@ -7,9 +7,11 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <substrate.h>
+#import <dlfcn.h>
+#import <mach-o/dyld.h>
 
 // 鍑芥暟鎸囬拡绫诲瀷
-typedef id (*original_func_t)(id self, SEL _cmd, ...);
+typedef id (*original_func_t)(id self, SEL _cmd);
 
 // 鍘熷鍑芥暟鎸囬拡
 static original_func_t orig_0xa8350 = NULL;
@@ -34,10 +36,7 @@ static id replaced_0xa8240(id self, SEL _cmd) {
 %ctor {
     NSLog(@"[VideoCompress Tweak] Loading...");
     
-    // 鑾峰彇涓绘ā鍧楀熀鍦板潃
-    Dl_info info;
-    dladdr((const void*)&_logosLocalCtor_a4702759, &info);
-    mach_header_64 *mainHeader = (mach_header_64 *)info.dli_fbase;
+    // 鑾峰彇涓绘ā鍧楀熀鍦板潃锛堢涓€涓姞杞界殑闀滃儚灏辨槸涓诲彲鎵ц鏂囦欢锛?    struct mach_header_64 *mainHeader = (struct mach_header_64 *)_dyld_get_image_header(0);
     NSLog(@"[VideoCompress Tweak] Main module base: %p", mainHeader);
     
     // Hook 1: VIP瑙ｉ攣 @ 0xa8350

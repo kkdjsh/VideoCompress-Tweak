@@ -1,16 +1,34 @@
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+#import <objc/runtime.h>
 
-// 鍏圚ook涓€涓‘瀹氬瓨鍦ㄧ殑绯荤粺绫伙紝娴嬭瘯涓€涓?hook鑳戒笉鑳界敤
-%hook UIApplication
-
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
-    %orig;
-    NSLog(@"[VideoCompress] App did finish launching!");
+static id hook_shouldLock(id self, SEL _cmd, id arg) {
+    NSLog(@"[VideoCompress] shouldLockForProductIdentifier called, returning NO");
+    return (id)0;
 }
 
-%end
-
-%ctor {
+__attribute__((constructor))
+static void init(void) {
     NSLog(@"[VideoCompress] Tweak loaded!");
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            // 鏌ユ壘VCSettingsConfig绫?            Class VCSettingsConfig = objc_getClass("VCSettingsConfig");
+            if (VCSettingsConfig) {
+                NSLog(@"[VideoCompress] Found VCSettingsConfig class!");
+                
+                // 鏌ユ壘shouldLockForProductIdentifier:绫绘柟娉?                Method method = class_getClassMethod(VCSettingsConfig, @selector(shouldLockForProductIdentifier:));
+                if (method) {
+                    NSLog(@"[VideoCompress] Found shouldLockForProductIdentifier: method!");
+                    
+                    // 鐩存帴鏇挎崲鏂规硶瀹炵幇
+                    method_setImplementation(method, (IMP)hook_shouldLock);
+                    NSLog(@"[VideoCompress] Method implementation replaced!");
+                } else {
+                    NSLog(@"[VideoCompress] shouldLockForProductIdentifier: not found");
+                }
+            } else {
+                NSLog(@"[VideoCompress] VCSettingsConfig class not found");
+            }
+        });
+    });
 }

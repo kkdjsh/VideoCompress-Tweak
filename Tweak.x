@@ -3,7 +3,6 @@
 #import <mach/mach.h>
 #import <string.h>
 
-// ARM64: mov x0, #0; ret
 static uint32_t patch_code[2] = {0xD2800000, 0xD65F03C0};
 
 static void patchFunction(void *funcAddr) {
@@ -43,23 +42,16 @@ static void doPatches() {
     void *base = findMainImageBase();
     NSLog(@"[VideoCompress] Main base: %p", base);
     
-    // Patch 1: VIP瑙ｉ攣 @ 0xa8350
+    // 鍙狿atch绗竴涓細VIP瑙ｉ攣 @ 0xa8350
     patchFunction((void *)((uintptr_t)base + 0xa8350));
     
-    // Patch 2: 鎻掑睆骞垮憡 @ 0xa6ad0
-    patchFunction((void *)((uintptr_t)base + 0xa6ad0));
-    
-    // Patch 3: 棰濆鍔犲浐 @ 0xa8240
-    patchFunction((void *)((uintptr_t)base + 0xa8240));
-    
-    NSLog(@"[VideoCompress] All patches applied!");
+    NSLog(@"[VideoCompress] Patches done!");
 }
 
 __attribute__((constructor))
 static void init(void) {
     NSLog(@"[VideoCompress] Tweak loaded!");
     
-    // 寤惰繜1绉掓墽琛宲atch锛岀瓑App瀹屽叏鍚姩鍚庡啀patch锛岄伩鍏嶉棯閫€
     dispatch_async(dispatch_get_main_queue(), ^{
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             doPatches();
